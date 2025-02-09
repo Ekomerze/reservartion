@@ -1,0 +1,166 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+import os
+from datetime import datetime, timedelta
+
+# Ielādē .env failu
+load_dotenv()
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reservations.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'your_secret_key'
+
+# Konfigurē e-pasta sūtīšanu
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
+mail = Mail(app)
+
+db = SQLAlchemy(app)
+
+class Reservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
+    guests = db.Column(db.Integer, nullable=False)
+    table_number = db.Column(db.Integer, nullable=True)
+
+class Archive(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
+    guests = db.Column(db.Integer, nullable=False)
+    table_number = db.Column(db.Integer, nullable=True)
+
+def generate_time_slots():
+    now = datetime.now()
+    start_time = datetime(now.year, now.month, now.day, 12, 0)
+    end_time = datetime(now.year, now.month, now.day, 20, 0)
+    time_slots = []
+
+    while start_time <= end_time:
+        reservations_at_time = Reservation.query.filter_by(time=start_time).count()
+        available = reservations_at_time < 10
+        time_slots.append({"time": start_time.strftime("%H:%M"), "available": available})
+        start_time += timedelta(minutes=15)
+    return time_slots
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    now = datetime.now()
+    available_tables = 10 - Reservation.query.filter(Reservation.time >= now, Reservation.time < now + timedelta(hours=1)).count()
+    return render_template('index.html', available_tables=available_tables)
+
+@app.route('/client', methods=['GET', 'POST'])
+def client():
+    time_slots = generate_time_slots()
+    if request.method == 'POST':
+        name = request.form['name']
+        phone = request.form['phone']
+        email = request.form['email']
+        selected_time = request.form['time']
+        guests = int(request.form.get('guests', 1))
+
+        if selected_time not in [slot["time"] for slot in time_slots if slot["available"]]:
+            flash("Izvēlētais laiks nav pieejams. Lūdzu, izvēlieties citu!", "danger")
+            return redirect(url_for('client'))
+
+        time = datetime.strptime(selected_time, "%H:%M").replace(year=now.year, month=now.month, day=now.day)
+        assigned_table = next((i for i in range(1, 11) if not Reservation.query.filter_by(time=time, table_number=i).first()), None)
+        if assigned_table is None:
+            flash('Nav pieejamu galdiņu šajā laikā.', 'danger')
+            return redirect(url_for('client'))
+
+        new_reservation = Reservation(name=name, phone=phone, email=email, time=time, guests=guests, table_number=assigned_table)
+        db.session.add(new_reservation)
+        db.session.commit()
+        send_confirmation_email(email, time, guests, assigned_table)
+        flash('Rezervācija veiksmīga!', 'success')
+        return redirect(url_for('client'))
+
+    return render_template('client.html', time_slots=time_slots)
+
+@app.route('/reservation')
+def reservation():
+    reservations = Reservation.query.all()
+    return render_template('reservation.html', reservations=reservations)
+
+@app.route('/reservation/delete/<int:id>')
+def delete_reservation(id):
+    res = Reservation.query.get(id)
+    if res:
+        db.session.delete(res)
+        db.session.commit()
+    return redirect(url_for('reservation'))
+
+@app.route('/reservation_archive')
+def reservation_archive():
+    archives = Archive.query.all()
+    return render_template('reservation_archive.html', archives=archives)
+
+@app.route('/restaurant')
+def restaurant():
+    return render_template('restaurant.html')
+
+def send_confirmation_email(email, time, guests, table_number):
+    with app.app_context():
+        msg = Message("Rezervācijas apstiprinājums", recipients=[email])
+        msg.body = f"Labdien! Jūsu rezervācija ir apstiprināta.\n\nLaiks: {time.strftime('%Y-%m-%d %H:%M')}\nViesu skaits: {guests}\nGalda numurs: {table_number}\n\nPaldies, ka izvēlējāties mūsu restorānu!"
+        try:
+            mail.send(msg)
+            print(f"✅ E-pasts veiksmīgi nosūtīts uz {email}")
+        except Exception as e:
+            print(f"❌ Kļūda e-pasta sūtīšanā: {e}")
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+
+
+
+# HTML Files:
+# index.html
+# client.html
+# reservation.html
+# restaurant.html
+# reservation_archive.html
+
+# index.html
+# <html>
+# <head><title>Restaurant Reservation System</title></head>
+# <body>
+# <h1>Restaurant Reservations</h1>
+# <p>Available Tables: {{ available_tables }}</p>
+# <a href="/client">Make a Reservation</a>
+# <a href="/reservation">Manage Reservations</a>
+# </body>
+# </html>
+
+# client.html
+# <html>
+# <head><title>Client Reservation</title></head>
+# <body>
+# <h1>Make a Reservation</h1>
+# <form method="POST">
+# Name: <input type="text" name="name"><br>
+# Phone: <input type="text" name="phone"><br>
+# Email: <input type="text" name="email"><br>
+# Time: <input type="datetime-local" name="time" min="2025-01-01T12:00" max="2025-12-31T20:00" step="900"><br>
+# <input type="submit" value="Reserve">
+# </form>
+# </body>
+# </html>
+
+# reservation.html, restaurant.html, reservation_archive.html will follow similar structure

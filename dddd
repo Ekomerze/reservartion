@@ -1,0 +1,61 @@
+@app.route('/client', methods=['GET', 'POST'])
+def client():
+    selected_date = request.args.get('date', datetime.today().date().strftime('%Y-%m-%d'))
+    selected_date_obj = datetime.strptime(selected_date, '%Y-%m-%d').date()
+
+    # Aprēķinām pieejamos laikus ik pēc 15 minūtēm
+    available_times = {}
+    opening_time = datetime.combine(selected_date_obj, settings.opening_time if settings else time(12, 0))
+    closing_time = datetime.combine(selected_date_obj, settings.closing_time if settings else time(20, 0))
+
+    current_time = opening_time
+    while current_time <= closing_time:
+        reservations_count = Reservation.query.filter(
+            db.func.date(Reservation.time) == selected_date_obj,
+            Reservation.time >= current_time,
+            Reservation.time < current_time + timedelta(hours=2)
+        ).count()
+        
+        total_tables = DailyTableSettings.query.filter_by(date=selected_date_obj).count()
+        available_times[current_time.strftime("%Y-%m-%dT%H:%M")] = reservations_count < total_tables
+
+        current_time += timedelta(minutes=15)
+
+    if request.method == 'POST':
+        name = request.form['name']
+        phone = request.form['phone']
+        email = request.form['email']
+        time_str = request.form['time']
+        guests = int(request.form.get('guests', 1))
+        time = datetime.strptime(time_str, "%Y-%m-%dT%H:%M")
+
+        reservations_count = Reservation.query.filter(
+            db.func.date(Reservation.time) == selected_date_obj,
+            Reservation.time == time
+        ).count()
+
+        total_tables = DailyTableSettings.query.filter_by(date=selected_date_obj).count()
+
+        if reservations_count >= total_tables:
+            flash('Nav pieejamu galdiņu šajā laikā.', 'danger')
+            return redirect(url_for('client', date=selected_date))
+
+        assigned_table = next(
+            (i for i in range(1, total_tables + 1) if not Reservation.query.filter_by(time=time, table_number=i).first()),
+            None
+        )
+
+        if assigned_table is None:
+            flash('Nav pieejamu galdiņu šajā laikā.', 'danger')
+            return redirect(url_for('client', date=selected_date))
+
+        new_reservation = Reservation(name=name, phone=phone, email=email, time=time, guests=guests, table_number=assigned_table)
+        db.session.add(new_reservation)
+        db.session.commit()
+
+        send_confirmation_email(email, time, guests, assigned_table)
+        flash('Rezervācija veiksmīga!', 'success')
+        return redirect(url_for('client', date=selected_date))
+
+    reservations = Reservation.query.filter(db.func.date(Reservation.time) == selected_date_obj).all()
+    return render_template('client.html', reservations=reservations, available_times=available_times, selected_date=selected_date)

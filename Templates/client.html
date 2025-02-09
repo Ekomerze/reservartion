@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rezervācijas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-6">
+
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">Rezervācijas</h1>
+
+        <!-- ✅ Paziņojums pēc rezervācijas -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-lg {% if category == 'success' %} bg-green-500 text-white {% else %} bg-red-500 text-white {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- ✅ Datuma izvēle -->
+        <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Izvēlieties datumu</h2>
+            <input type="date" id="date-picker" value="{{ selected_date }}" class="w-full p-2 border rounded" onchange="window.location.href='?date=' + this.value">
+        </div>
+
+        <!-- ✅ Klienta ievades lauki -->
+        <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Ievadiet rezervācijas datus</h2>
+            <form method="POST" id="reservation-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Vārds:</label>
+                    <input type="text" name="name" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Telefons:</label>
+                    <input type="text" name="phone" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">E-pasts:</label>
+                    <input type="email" name="email" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Viesu skaits:</label>
+                    <input type="number" name="guests" min="1" required class="w-full p-2 border rounded">
+                </div>
+
+                <!-- ✅ Laika izvēle (pārvietota zem formas) -->
+                <h2 class="text-2xl font-semibold mt-8 mb-4 text-center">Izvēlieties rezervācijas laiku</h2>
+                <div class="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
+                    {% for time, available in available_times.items() %}
+                        <button type="submit" name="time" value="{{ time }}" class="w-full py-2 text-center rounded-lg 
+                            {% if available %} bg-blue-500 text-white hover:bg-blue-700 {% else %} bg-gray-300 text-gray-500 cursor-not-allowed {% endif %}" 
+                            {% if not available %} disabled {% endif %}>
+                            {{ time[-5:] }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

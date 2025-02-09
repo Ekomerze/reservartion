@@ -43,3 +43,6 @@ _ReSharper*/
 
 # Ignore Nuget packages folder
 packages/
+
+# Ignore environment variables file
+.env

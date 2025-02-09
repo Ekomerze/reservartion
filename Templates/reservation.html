@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rezervāciju saraksts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Esošās rezervācijas</h1>
+    <div class="container mx-auto">
+        
+        <!-- Meklēšanas forma -->
+    <form method="GET" class="mb-4 bg-white p-4 rounded-lg shadow flex flex-wrap gap-4">
+        <input type="text" name="name" placeholder="Vārds" value="{{ name_search }}" class="p-2 border rounded w-full sm:w-auto">
+        <input type="text" name="phone" placeholder="Telefons" value="{{ phone_search }}" class="p-2 border rounded w-full sm:w-auto">
+        <input type="date" name="date" value="{{ date_search }}" class="p-2 border rounded w-full sm:w-auto">
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700">Meklēt</button>
+        <a href="{{ url_for('reservation') }}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700">Visas rezervācijas</a>
+    </form>
+        
+        <table class="w-full bg-white shadow-lg rounded-lg">
+            <thead>
+                <tr class="bg-blue-500 text-white">
+                    <th class="py-2 px-4">Vārds</th>
+                    <th class="py-2 px-4">Telefons</th>
+                    <th class="py-2 px-4">E-pasts</th>
+                    <th class="py-2 px-4">Laiks</th>
+                    <th class="py-2 px-4">Viesu skaits</th>
+                    <th class="py-2 px-4">Galdiņš</th>
+                    <th class="py-2 px-4">Darbības</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in reservations %}
+                <tr class="border-b">
+                    <td class="py-2 px-4">{{ res.name }}</td>
+                    <td class="py-2 px-4">{{ res.phone }}</td>
+                    <td class="py-2 px-4">{{ res.email }}</td>
+                    <td class="py-2 px-4">{{ res.time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="py-2 px-4">{{ res.guests }}</td>
+                    <td class="py-2 px-4">{{ res.table_number }}</td>
+                    <td class="py-2 px-4">
+                        <a href="{{ url_for('edit_reservation', id=res.id) }}" class="text-blue-500 hover:underline">Rediģēt</a> |
+                        <a href="{{ url_for('delete_reservation', id=res.id) }}" class="text-red-500 hover:underline">Dzēst</a>
+                    </td>                
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="flex justify-center gap-4 mt-4">
+            <a href="/" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700">Uz galveno</a>
+        </div>
+    </body>
+    </html>
+    

@@ -1,0 +1,27 @@
+@app.route('/client', methods=['GET', 'POST'])
+def client():
+    # Iegūstam darba laiku no iestatījumiem
+    settings = Settings.query.first()
+    opening_time = settings.opening_time
+    closing_time = settings.closing_time
+    
+    # Ģenerējam laika slotus
+    time_slots = []
+    current_time = datetime.combine(datetime.today(), opening_time)
+    end_time = datetime.combine(datetime.today(), closing_time)
+    
+    while current_time <= end_time:
+        # Pārbaudām pieejamību
+        reservations = Reservation.query.filter_by(time=current_time).count()
+        available = reservations < TableSettings.query.count()
+        
+        time_slots.append({
+            "time": current_time.strftime("%H:%M"),
+            "available": available
+        })
+        current_time += timedelta(minutes=15)
+
+    # Pievienojam šodienas datumu veidnei
+    today_date = datetime.today().strftime('%Y-%m-%d')
+
+    return render_template('client.html', time_slots=time_slots, today=today_date)

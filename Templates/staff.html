@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Darbinieku lapa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Restorāna iestatījumi</h1>
+
+    <div class="container mx-auto">
+        <form method="GET" class="mb-4 bg-white p-4 rounded-lg shadow">
+            <label class="block text-lg font-medium">Izvēlies datumu:</label>
+            <input type="date" name="date" value="{{ selected_date }}" class="p-2 border rounded w-full" onchange="this.form.submit()">
+        </form>
+
+        <form method="POST" class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Darba laiks</h2>
+            <label class="block">Atvēršanas laiks:</label>
+            <input type="time" name="opening_time" value="{{ settings.opening_time }}" class="w-full p-2 border rounded mb-2">
+            
+            <label class="block">Slēgšanas laiks:</label>
+            <input type="time" name="closing_time" value="{{ settings.closing_time }}" class="w-full p-2 border rounded mb-4">
+
+            <h2 class="text-xl font-semibold mb-4">Galdiņi un vietu skaits ({{ selected_date }})</h2>
+            <table class="w-full bg-white shadow-lg rounded-lg">
+                <thead>
+                    <tr class="bg-blue-500 text-white">
+                        <th class="py-2 px-4">Galdiņa Nr.</th>
+                        <th class="py-2 px-4">Vietu skaits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for table in tables %}
+                    <tr class="border-b">
+                        <td class="py-2 px-4">{{ table.table_number }}</td>
+                        <td class="py-2 px-4">
+                            <input type="number" name="seats_{{ table.table_number }}" value="{{ table.seats }}" min="1" class="p-2 border rounded w-full">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <button type="submit" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-700 mt-4">Saglabāt izmaiņas</button>
+        </form>
+        
+        <div class="flex justify-center gap-4 mt-4">
+            <form method="POST" action="{{ url_for('add_table', date=selected_date) }}">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700">Pievienot galdiņu</button>
+            </form>
+            <form method="POST" action="{{ url_for('remove_table', date=selected_date) }}">
+                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700">Noņemt galdiņu</button>
+            </form>
+            <a href="/" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700">Uz galveno</a>
+        </div>
+    </div>
+</body>
+</html>

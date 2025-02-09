@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Restorāna Rezervācijas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center mb-6">Restorāna Rezervācijas</h1>
+        <p class="text-lg text-center mb-6">Brīvie galdi tuvākajā stundā: <span class="font-semibold">{{ available_tables }}</span></p>
+
+<!-- Modulis brīvo galdiņu pārbaudei -->
+<div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Apskatīt brīvos galdiņus</h2>
+    <form method="GET" action="{{ url_for('index') }}" class="space-y-4">
+        <label class="block text-sm font-medium">Izvēlieties datumu:</label>
+        <input type="date" name="date" value="{{ selected_date }}" required class="w-full p-2 border rounded">
+        
+        <label class="block text-sm font-medium">Izvēlieties laiku:</label>
+        <input type="time" name="time" value="{{ selected_time }}" required class="w-full p-2 border rounded">
+        
+        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700">Parādīt</button>
+    </form>
+
+    {% if free_tables is not none %}
+    <div class="mt-4">
+        <h3 class="text-lg font-semibold">Brīvie galdiņi {{ selected_date }} {{ selected_time }}</h3>
+        {% if free_tables %}
+            <ul class="list-disc pl-5">
+                {% for table in free_tables %}
+                    <li>Galdiņš Nr. {{ table }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-red-500">Nav pieejamu galdiņu šajā datumā un laikā.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+
+        <!-- Rezervācijas forma -->
+        <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mt-6">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Veikt rezervāciju</h2>
+            <form method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Vārds:</label>
+                    <input type="text" name="name" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Telefons:</label>
+                    <input type="text" name="phone" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">E-pasts:</label>
+                    <input type="email" name="email" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Viesu skaits:</label>
+                    <input type="number" name="guests" min="1" required class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Galdiņa numurs (neobligāts):</label>
+                    <input type="number" name="table_number" min="1" max="10" class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Laiks:</label>
+                    <input type="datetime-local" name="time" min="2025-01-01T12:00" max="2025-12-31T20:00" step="900" required class="w-full p-2 border rounded">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700">Rezervēt</button>
+            </form>
+        </div>
+
+  <!-- Navigācijas pogas -->
+        <div class="flex justify-center gap-4 mt-6">
+              <a href="/reservation" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700">Pārvaldīt rezervācijas</a>
+              <a href="/reservation_archive" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700">Arhīvs</a>
+             <a href="/staff" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-700">Restorāns</a>
+        </div>
+    </div>
+</body>
+</html>

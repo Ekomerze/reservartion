@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dzēst Rezervāciju</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Dzēst Rezervāciju</h1>
+        <form action="/delete_reservation" method="POST" class="mt-4">
+            <div class="mb-3">
+                <label for="reservation_id" class="form-label">Rezervācijas ID:</label>
+                <input type="number" id="reservation_id" name="reservation_id" class="form-control" placeholder="Ievadiet rezervācijas ID" required>
+            </div>
+            <button type="submit" class="btn btn-danger">Apstiprināt Dzēšanu</button>
+            <a href="/reservations" class="btn btn-secondary">Atpakaļ</a>
+        </form>
+    </div>
+</body>
+</html>

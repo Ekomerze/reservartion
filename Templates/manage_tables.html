@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galdu pārvaldība</title>
+</head>
+<body>
+    <h1>Galdu pārvaldība</h1>
+
+    <!-- Pievienot galdu -->
+    <h2>Pievienot jaunu galdu</h2>
+    <form action="/manage_tables" method="post">
+        <input type="hidden" name="action" value="add">
+        <label for="table_id">Galda ID:</label>
+        <input type="number" id="table_id" name="table_id" required>
+        <label for="seats">Vietu skaits:</label>
+        <input type="number" id="seats" name="seats" required>
+        <button type="submit">Pievienot galdu</button>
+    </form>
+
+    <!-- Noņemt galdu -->
+    <h2>Noņemt galdu</h2>
+    <form action="/manage_tables" method="post">
+        <input type="hidden" name="action" value="delete">
+        <label for="table_id">Galda ID:</label>
+        <input type="number" id="table_id" name="table_id" required>
+        <button type="submit">Noņemt galdu</button>
+    </form>
+
+    <!-- Mainīt vietu skaitu -->
+    <h2>Mainīt vietu skaitu</h2>
+    <form action="/manage_tables" method="post">
+        <input type="hidden" name="action" value="update">
+        <label for="table_id">Galda ID:</label>
+        <input type="number" id="table_id" name="table_id" required>
+        <label for="seats">Jauns vietu skaits:</label>
+        <input type="number" id="seats" name="seats" required>
+        <button type="submit">Atjaunināt vietu skaitu</button>
+    </form>
+
+    <!-- Esošie galdi -->
+    <h2>Esošie galdi</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Galda ID</th>
+                <th>Vietu skaits</th>
+                <th>Brīvās vietas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for table in tables %}
+            <tr>
+                <td>{{ table["id"] }}</td>
+                <td>{{ table["seats"] }}</td>
+                <td>{{ table["available_seats"] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
