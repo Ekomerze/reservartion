@@ -358,13 +358,27 @@ def edit_reservation(id):
 def delete_reservation(id):
     res = Reservation.query.get(id)
     if res:
-        db.session.delete(res)
+        # Pārvietojam rezervāciju uz arhīvu
+        archived_reservation = Archive(
+            name=res.name,
+            phone=res.phone,
+            email=res.email,
+            time=res.time,
+            guests=res.guests,
+            table_number=res.table_number
+        )
+        db.session.add(archived_reservation)
+        db.session.delete(res)  # Tagad droši dzēšam oriģinālo rezervāciju
         db.session.commit()
+        flash('Rezervācija pārvietota uz arhīvu!', 'success')
+    else:
+        flash('Rezervācija nav atrasta.', 'danger')
+
     return redirect(url_for('reservation'))
 
 @app.route('/reservation_archive')
 def reservation_archive():
-    archives = Archive.query.all()
+    archives = Archive.query.order_by(Archive.time.desc()).all()
     return render_template('reservation_archive.html', archives=archives)
 
 @app.route('/restaurant')
