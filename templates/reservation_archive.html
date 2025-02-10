@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Rezervāciju arhīvs</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-100 text-gray-900 p-6">
 
@@ -14,7 +21,7 @@
     <div class="container mx-auto bg-white p-6 rounded-lg shadow-lg">
         {% if archives %}
         <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <thead class="bg-blue-500 text-white">
+            <thead class="bg-blue-600 text-white">
                 <tr>
                     <th class="py-3 px-4 text-left">Vārds</th>
                     <th class="py-3 px-4 text-left">Telefons</th>
@@ -36,14 +43,14 @@
             </tbody>
         </table>
         {% else %}
-        <p class="text-center text-gray-500">Nav arhīva ierakstu.</p>
+        <p class="text-center text-gray-500">📂 Nav arhīva ierakstu.</p>
         {% endif %}
     </div>
 
     <!-- Navigācijas pogas -->
     <div class="flex justify-center gap-4 mt-6">
-        <a href="/" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700">Atpakaļ uz sākumlapu</a>
-        <a href="/reservation" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700">Skatīt aktīvās rezervācijas</a>
+        <a href="/" class="px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition">🏠 Atpakaļ uz sākumlapu</a>
+        <a href="/reservation" class="px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700 transition">📅 Skatīt aktīvās rezervācijas</a>
     </div>
 
 </body>
