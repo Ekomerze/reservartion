@@ -42,13 +42,17 @@
                     <td class="py-2 px-4">{{ res.table_number }}</td>
                     <td class="py-2 px-4">
                         <a href="{{ url_for('edit_reservation', id=res.id) }}" class="text-blue-500 hover:underline">Rediģēt</a> |
-                        <a href="{{ url_for('delete_reservation', id=res.id) }}" class="text-red-500 hover:underline">Dzēst</a>
-                    </td>                
+                        <a href="{{ url_for('delete_reservation', id=res.id) }}" 
+                           class="text-red-500 hover:underline"
+                           onclick="return confirm('Vai tiešām vēlaties dzēst šo rezervāciju?')">
+                           Dzēst
+                        </a>
+                    </td>  
                 </tr>
                 {% endfor %}
-            </tbody>
+            </tbody>            
         </table>
-        
+
         <div class="flex justify-center gap-4 mt-4">
             <a href="/" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700">Uz galveno</a>
         </div>
