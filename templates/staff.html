@@ -47,14 +47,21 @@
         </form>
         
         <div class="flex justify-center gap-4 mt-4">
-            <form method="POST" action="{{ url_for('add_table', date=selected_date) }}">
+            <!-- Pievienot galdiņu ar iespēju norādīt numuru -->
+            <form method="POST" action="{{ url_for('add_table', date=selected_date) }}" class="flex flex-col items-center">
+                <label class="text-lg font-medium">Galdiņa numurs (neobligāti):</label>
+                <input type="number" name="table_number" class="p-2 border rounded w-full mb-2" placeholder="Ievadiet numuru vai atstājiet tukšu">
                 <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700">Pievienot galdiņu</button>
             </form>
+
+            <!-- Noņemt pēdējo pievienoto galdiņu -->
             <form method="POST" action="{{ url_for('remove_table', date=selected_date) }}">
-                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700">Noņemt galdiņu</button>
+                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700">Noņemt pēdējo galdiņu</button>
             </form>
+
             <a href="/" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700">Uz galveno</a>
         </div>
     </div>
 </body>
 </html>
+
