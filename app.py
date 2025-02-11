@@ -284,30 +284,64 @@ def staff():
 
 @app.route('/staff/add_table', methods=['POST'])
 def add_table():
-    existing_tables = TableSettings.query.count()
-    new_table = TableSettings(table_number=existing_tables + 1, seats=4)  # Noklusējums - 4 vietas
+    table_number = request.form.get('table_number')
+
+    # Ja lietotājs nav norādījis galda numuru, tiek piešķirts nākamais pieejamais numurs
+    if not table_number:
+        existing_tables = TableSettings.query.count()
+        table_number = existing_tables + 1  # Noklusējuma numerācija
+
+    else:
+        table_number = int(table_number)  # Pārvēršam lietotāja ievadīto numuru par int
+
+    # Pārbaudām, vai šāds galdiņa numurs jau eksistē
+    existing_table = TableSettings.query.filter_by(table_number=table_number).first()
+    if existing_table:
+        flash('Galdiņa numurs jau eksistē!', 'danger')
+        return redirect(url_for('staff'))
+
+    new_table = TableSettings(table_number=table_number, seats=4)  # Noklusējums - 4 vietas
     db.session.add(new_table)
     db.session.commit()
+    
     flash('Jauns galdiņš pievienots!', 'success')
     return redirect(url_for('staff'))
 
+
+from flask import request, redirect, url_for, flash
+from datetime import datetime
+from models import db, DailyTableSettings, Reservation
+
 @app.route('/staff/remove_table', methods=['POST'])
 def remove_table():
-    selected_date = request.form['selected_date']
+    selected_date = request.form.get('selected_date')
+    table_number = request.form.get('table_number')  # Iespēja norādīt konkrētu galdu
+
+    if not selected_date:
+        flash('Nav izvēlēts datums!', 'danger')
+        return redirect(url_for('staff'))
+
     selected_date_obj = datetime.strptime(selected_date, '%Y-%m-%d').date()
 
-    last_table = DailyTableSettings.query.filter_by(date=selected_date_obj).order_by(DailyTableSettings.table_number.desc()).first()
+    if table_number:
+        # Dzēšam konkrēto galdiņu, ja tas norādīts
+        table = DailyTableSettings.query.filter_by(date=selected_date_obj, table_number=int(table_number)).first()
+    else:
+        # Dzēšam pēdējo pievienoto galdiņu, ja nav norādīts numurs
+        table = DailyTableSettings.query.filter_by(date=selected_date_obj).order_by(DailyTableSettings.table_number.desc()).first()
 
-    if last_table:
-        # Pārbaudām, vai galdiņš jau ir rezervēts
-        existing_reservation = Reservation.query.filter_by(time=selected_date_obj, table_number=last_table.table_number).first()
-        
+    if not table:
+        flash('Nav galdiņu, ko noņemt!', 'danger')
+    else:
+        # Pārbaudām, vai galdiņš ir rezervēts
+        existing_reservation = Reservation.query.filter_by(time=selected_date_obj, table_number=table.table_number).first()
+
         if existing_reservation:
-            flash('Galdiņu nevar izdzēst, jo tam ir rezervācija!', 'danger')
+            flash(f'Galdiņu {table.table_number} nevar izdzēst, jo tam ir rezervācija!', 'danger')
         else:
-            db.session.delete(last_table)
+            db.session.delete(table)
             db.session.commit()
-            flash('Pēdējais galdiņš noņemts!', 'success')
+            flash(f'Galdiņš {table.table_number} veiksmīgi noņemts!', 'success')
 
     return redirect(url_for('staff', date=selected_date))
 
